@@ -481,14 +481,3 @@ function trackAbandonedTutorial() {
 }
 home();
 creatorIntro(data.motion);
-if (analyticsAvailable() && analyticsConsent() === null) {
-  const prompt = document.createElement("div");
-  prompt.id = "analytics-prompt";
-  prompt.setAttribute("role", "group");
-  prompt.setAttribute("aria-label", "Preferência de métricas");
-  prompt.style.cssText = "position:fixed;bottom:12px;left:12px;right:12px;max-width:520px;margin:auto;padding:16px;background:#17243b;color:white;border:1px solid #6381a0;border-radius:14px;z-index:9999;box-shadow:0 10px 40px #0008;font:14px system-ui";
-  prompt.innerHTML = '<p style="margin:0 0 12px">Podemos coletar estatísticas de uso para melhorar o PULSE? Opcional; você pode jogar normalmente sem aceitar.</p><div style="display:flex;gap:10px"><button data-action="analytics-yes" style="padding:10px;cursor:pointer">Aceitar</button><button data-action="analytics-no" style="padding:10px;cursor:pointer">Recusar</button></div>';
-  prompt.querySelector('[data-action="analytics-yes"]').addEventListener("click", () => { setAnalyticsConsent(true); prompt.remove(); });
-  prompt.querySelector('[data-action="analytics-no"]').addEventListener("click", () => { setAnalyticsConsent(false); prompt.remove(); });
-  document.body.appendChild(prompt);
-}
