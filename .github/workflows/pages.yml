@@ -27,6 +27,8 @@ jobs:
         working-directory: ${{ env.PULSE_DIR }}
       - run: npm run build
         working-directory: ${{ env.PULSE_DIR }}
+        env:
+          VITE_GA4_MEASUREMENT_ID: ${{ vars.VITE_GA4_MEASUREMENT_ID }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
