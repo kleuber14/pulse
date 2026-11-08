@@ -1,102 +1,137 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  affected,
-  goal,
-  mask,
+  rotate,
   move,
-  solve,
-  table,
+  network,
   levels,
+  solve,
   daily,
   localDate,
   medal,
 } from "../src/engine.js";
 
-test("Pulso: centro, canto e borda usam somente vizinhos ortogonais", () => {
-  assert.deepEqual(affected(3, { pulse: true }, 4).sort(), [1, 3, 4, 5, 7]);
-  assert.deepEqual(affected(3, { pulse: true }, 0).sort(), [0, 1, 3]);
-  assert.deepEqual(affected(3, { pulse: true }, 1).sort(), [0, 1, 2, 4]);
+test("rotação horária preserva formas e quatro giros restauram cada peça", () => {
+  assert.equal(rotate(1), 2);
+  assert.equal(rotate(2), 4);
+  assert.equal(rotate(4), 8);
+  assert.equal(rotate(8), 1);
+  for (let tile = 1; tile <= 15; tile++) {
+    assert.equal(rotate(tile, 4), tile);
+    assert.equal(rotate(rotate(tile), 3), tile);
+    assert.equal(
+      rotate(tile).toString(2).replace(/0/g, "").length,
+      tile.toString(2).replace(/0/g, "").length,
+    );
+  }
 });
-test("Espelho adiciona só o correspondente horizontal, com união dos efeitos", () => {
-  assert.deepEqual(
-    affected(3, { pulse: true, mirror: true }, 0).sort(),
-    [0, 1, 2, 3],
-  );
-  assert.deepEqual(
-    affected(3, { pulse: true, mirror: true }, 4).sort(),
-    [1, 3, 4, 5, 7],
-  );
-  assert.deepEqual(
-    affected(4, { pulse: true, mirror: true }, 1).sort(),
-    [0, 1, 2, 5],
-  );
+test("energia só passa entre pontas recíprocas e não atravessa bordas", () => {
+  const l = { n: 2, source: 0 };
+  assert.deepEqual([...network(l, [2, 8, 2, 8]).powered], [0, 1]);
+  assert.equal(network(l, [2, 8, 2, 8]).solved, false);
+  assert.equal(network(l, [2, 4, 2, 8]).powered.size, 1);
+  assert.equal(network(l, [1, 0, 0, 0]).loose, 1);
+  assert.equal(network(l, [6, 12, 3, 9]).solved, true);
 });
-test("Ressonância e combinações não repetem núcleos nem ultrapassam as bordas", () => {
-  assert.deepEqual(affected(3, { diagonal: true }, 0).sort(), [0, 4]);
-  assert.deepEqual(
-    affected(3, { pulse: true, mirror: true, diagonal: true }, 4).sort(),
-    [0, 1, 2, 3, 4, 5, 6, 7, 8],
-  );
-  assert.deepEqual(
-    affected(3, { mirror: true, diagonal: true }, 0).sort(),
-    [0, 2, 4],
-  );
+test("o gerador não gira; os movimentos não modificam o estado anterior", () => {
+  const l = levels[0],
+    before = [...l.state];
+  assert.deepEqual(move(l, before, 0), before);
+  const after = move(l, before, 1);
+  assert.deepEqual(before, l.state);
+  assert.notDeepEqual(after, before);
 });
-for (const level of levels)
-  test(`Fase ${level.number}: determinística, não resolvida, reversível e solução mínima válida`, () => {
-    const { n, rules, state, solution } = level;
-    assert.notEqual(state, goal(n));
-    assert.ok(solution.length > 0);
-    let s = state;
-    for (const i of solution) s = move(s, n, rules, i);
-    assert.equal(s, goal(n));
-    // Generation is the inverse of the known sequence applied to a solved board.
-    s = goal(n);
-    for (const i of [...solution].reverse()) s = move(s, n, rules, i);
-    assert.equal(s, state);
-    for (let i = 0; i < n * n; i++) {
-      assert.notEqual(mask(n, rules, i), 0);
-      assert.equal(move(move(state, n, rules, i), n, rules, i), state);
-      const after = move(state, n, rules, i);
-      const hint = solve(after, n, rules);
-      assert.ok(hint);
-      assert.equal(
-        hint.reduce((s, j) => move(s, n, rules, j), after),
-        goal(n),
-      );
+for (const l of levels)
+  test(`Circuito ${l.number}: alvo conectado, estado inicial incompleto e solução válida`, () => {
+    assert.ok(network(l, l.target).solved);
+    assert.equal(network(l, l.state).solved, false);
+    assert.ok(l.solution.length > 0);
+    assert.ok(
+      network(
+        l,
+        l.solution.reduce((s, i) => move(l, s, i), l.state),
+      ).solved,
+    );
+    // Hint remains valid after arbitrary moves, including a mistaken extra turn.
+    let state = [...l.state];
+    for (let i = 1; i < state.length; i += 3) state = move(l, state, i);
+    const answer = solve(l, state);
+    assert.ok(answer);
+    assert.ok(
+      network(
+        l,
+        answer.reduce((s, i) => move(l, s, i), state),
+      ).solved,
+    );
+    for (let i = 1; i < l.state.length; i++) {
+      let s = l.state;
+      for (let k = 0; k < 4; k++) s = move(l, s, i);
+      assert.deepEqual(s, l.state);
     }
-    assert.equal(table(n, rules).distance[state], solution.length);
   });
-test("progressão inicia em um movimento e termina com planejamento maior", () => {
-  assert.equal(levels[0].solution.length, 1);
-  assert.ok(levels[29].solution.length >= 4);
-  assert.equal(levels.length, 30);
+test("três primeiros circuitos ensinam em um, dois e três giros", () => {
+  assert.deepEqual(
+    levels.slice(0, 3).map((l) => l.solution.length),
+    [1, 2, 3],
+  );
   assert.equal(
-    new Set(levels.map((l) => JSON.stringify([l.n, l.rules, l.state]))).size,
+    new Set(levels.map((l) => JSON.stringify([l.n, l.state]))).size,
     30,
   );
-  assert.ok(levels.slice(0, 6).every((l) => l.n === 3));
-  assert.ok(levels.slice(6).every((l) => l.n === 4));
+  assert.ok(levels.slice(0, 10).every((l) => l.n === 3));
+  assert.ok(levels.slice(10).every((l) => l.n === 4));
 });
-test("diário: data local, mesmo estado por dia, solução válida por 366 dias", () => {
+test("solver escolhe um giro mínimo para qualquer orientação da peça introdutória", () => {
+  const l = levels[0];
+  let state = [...l.target];
+  for (let k = 0; k < 4; k++) {
+    assert.equal(solve(l, state).length, k % 2);
+    state = move(l, state, 1);
+  }
+});
+test("diário é determinístico por data local e solucionável durante 366 dias", () => {
   assert.equal(localDate(new Date(2026, 10, 8, 23, 59)), "2026-11-08");
   const seen = new Set();
   for (let i = 0; i < 366; i++) {
-    const date = new Date(2026, 0, 1 + i),
-      l = daily(localDate(date));
-    assert.deepEqual(l, daily(localDate(date)));
-    assert.notEqual(l.state, goal(l.n));
-    assert.equal(
-      l.solution.reduce((s, j) => move(s, l.n, l.rules, j), l.state),
-      goal(l.n),
+    const date = localDate(new Date(2026, 0, 1 + i)),
+      l = daily(date);
+    assert.deepEqual(l, daily(date));
+    assert.ok(!network(l, l.state).solved);
+    assert.ok(
+      network(
+        l,
+        l.solution.reduce((s, j) => move(l, s, j), l.state),
+      ).solved,
     );
-    seen.add(l.state);
+    seen.add(l.state.join(","));
   }
-  assert.ok(seen.size > 50);
+  assert.ok(seen.size > 100);
 });
-test("medalhas usam eficiência relativa à solução mínima", () => {
+test("medalhas premiam eficiência sem punir tentativas", () => {
   assert.equal(medal(3, 3), "ouro");
-  assert.equal(medal(5, 3), "prata");
-  assert.equal(medal(6, 3), "bronze");
+  assert.equal(medal(6, 3), "prata");
+  assert.equal(medal(7, 3), "bronze");
+});
+
+test("solver mínimo confere com enumeração independente em circuitos pequenos", () => {
+  const l = { n: 2, source: 0, target: [2, 12, 2, 9] };
+  for (let a = 0; a < 4; a++)
+    for (let b = 0; b < 4; b++)
+      for (let c = 0; c < 4; c++) {
+        const state = [2, rotate(12, a), rotate(2, b), rotate(9, c)];
+        let minimum = Infinity;
+        for (let x = 0; x < 4; x++)
+          for (let y = 0; y < 4; y++)
+            for (let z = 0; z < 4; z++)
+              if (
+                network(l, [
+                  2,
+                  rotate(state[1], x),
+                  rotate(state[2], y),
+                  rotate(state[3], z),
+                ]).solved
+              )
+                minimum = Math.min(minimum, x + y + z);
+        assert.equal(solve(l, state).length, minimum);
+      }
 });

@@ -1,12 +1,16 @@
-# PULSE
+# PULSE — Circuitos
 
-**Sinta o padrão. Descubra a lógica.**
+**Gire. Conecte. Deixe fluir.**
 
-Puzzle completo em JavaScript, Vite, CSS e SVG. Sem imagens, fontes externas, contas, backend, anúncios ou coleta de dados. O jogo funciona inteiramente no navegador.
+Puzzle HTML5 completo, em Vite, JavaScript, SVG e CSS. A mecânica desta versão é girar peças para formar uma rede de energia conectada. A identidade visual é própria. Não há contas, anúncios, analytics, backend nem imagens ou fontes externas.
 
-## Executar localmente
+Jogar: https://kleuber14.github.io/pulse/
 
-Use Node.js **24 LTS** e npm:
+Código: https://github.com/kleuber14/pulse
+
+## Executar
+
+Use Node.js 24 LTS e npm:
 
 ```sh
 cd /workspace/pulse
@@ -14,78 +18,63 @@ npm ci
 npm run dev
 ```
 
-Abra a URL exibida pelo Vite, normalmente `http://localhost:5173`. No Android conectado à mesma rede, use o endereço de rede exibido pelo Vite. O servidor precisa estar acessível nessa rede.
+Abra a URL exibida pelo Vite. Para acessar pelo Android na mesma rede, use o endereço de rede exibido e deixe o servidor acessível ao dispositivo.
 
 ```sh
-npm test          # testes de motor, persistência e interface
-npm run build    # distribuição estática em dist/
-npm run preview  # conferir o build localmente
+npm test
+npm run build
+npm run preview
 ```
 
-Não abra `index.html` diretamente por `file://`: use o servidor do Vite ou publique `dist/`.
+O build está em `dist/`, usa caminhos relativos e funciona em hospedagem estática, inclusive sob `/pulse/`. Não abra `index.html` por `file://`: use o servidor do Vite ou a hospedagem.
 
-## Jogar
+## Como jogar
 
-Toque um núcleo para alternar o conjunto afetado. A meta é acender todos. Observe os caminhos luminosos; não há cronômetro nem punição por tentar. Desfazer restaura exatamente o movimento anterior. Reiniciar restaura a fase original.
+O gerador verde é fixo. Cada toque em outra peça gira seus fios em 90 graus no sentido horário. A energia passa entre peças com pontas que se encontram; apenas as peças conectadas ao gerador ficam acesas. Para concluir, conecte todos os núcleos e feche todas as pontas dos fios.
 
-No teclado, Tab entra no tabuleiro; as setas navegam pelos núcleos; Enter ou espaço emitem um pulso. Os controles têm foco visível, etiquetas e estados acessíveis. Som começa desligado. Movimento reduzido do sistema tem prioridade sobre a preferência de animações do jogo.
+As fases 1, 2 e 3 têm tutoriais visuais, respectivamente com soluções de 1, 2 e 3 giros. Uma moldura destaca a próxima peça e a orientação acompanha o estado atual, mesmo após um erro ou desfazer. Os textos explicam o gerador, as conexões e a conclusão da rede. A partir da fase 4, o jogador explora livremente.
 
-A primeira dica explica a regra. As próximas apontam o primeiro movimento de uma solução mínima **do estado atual**. Dicas não fazem o movimento automaticamente. As medalhas são relativas à solução mínima inicial: ouro até o ideal; prata até ideal + 2; bronze acima disso. Progresso, melhores resultados diários e preferências ficam neste navegador.
+O início oferece **Jogar com som**, que habilita o áudio dentro do gesto do usuário exigido pelos navegadores, ou **Prefiro jogar sem som**. Há um controle visível de som durante a partida e nas configurações. Os efeitos de giros e vitória são sintetizados com Web Audio; não há música comercial. As preferências de som e movimento são salvas. A preferência de movimento reduzido do dispositivo prevalece.
 
-## Regras exatas
+Há 30 circuitos em três capítulos: **Conexão**, **Circuitos** e **Fluxo**. Os primeiros dez usam 3×3 e os demais 4×4. Capítulos posteriores acrescentam laços à rede e mais peças desalinhadas. Não há cronômetro ou punição por tentar. Desfazer restaura os fios e a orientação exatos.
 
-Cada movimento alterna uma **união de conjuntos**, sem duplicar efeitos:
+A dica primeiro explica como a energia flui; solicitações seguintes apontam um giro de uma solução mínima do estado atual. Ouro corresponde à referência ideal, prata até ideal + 3 giros e bronze acima disso. Há desafio diário determinístico por data local e melhor resultado salvo neste navegador, sem ranking global.
 
-- **Pulso:** o próprio núcleo e vizinhos ortogonais imediatamente adjacentes.
-- **Espelho:** acrescenta o correspondente horizontal do núcleo tocado (`linha, n−1−coluna`). Não replica a vizinhança inteira. Se coincidir com outro efeito, alterna uma só vez.
-- **Ressonância:** acrescenta os vizinhos diagonais imediatamente adjacentes.
+No teclado, Tab entra no tabuleiro, setas navegam e Enter ou espaço giram. Os controles têm foco visível e etiquetas com posição e estado de energia.
 
-Fases 1–10: Pulso. Fases 11–20: Pulso + Espelho. Fases 21–23: Pulso + Ressonância. Fases 24–26: Espelho + Ressonância. Fases 27–30: as três regras. As fases introdutórias das novas combinações oferecem um exemplo animado que não altera o tabuleiro.
+## Motor e validação
 
-As seis primeiras fases usam 3×3; as demais, 4×4. As soluções mínimas progridem de 1 a 8 movimentos, com redução intencional de dificuldade na apresentação de novas regras.
+`engine.js` usa quatro bits por peça: norte, leste, sul e oeste. Girar preserva a forma; quatro giros restauram a peça. O motor de energia faz busca em largura a partir do gerador, verificando pontas recíprocas. A vitória exige todos conectados e nenhuma ponta solta, inclusive nas bordas.
 
-## Geração e garantia de solução
+As fases partem de redes conectadas geradas com sementes fixas; depois algumas peças são giradas. Fases iniciais usam um caminho cuidadosamente escolhido. As demais usam árvores conectadas e, nos capítulos seguintes, laços adicionais. Nenhuma fase começa concluída.
 
-`src/engine.js` percorre os estados alcançáveis por busca em largura, partindo do tabuleiro todo aceso. Cada transição é reversível: aplicar duas vezes o mesmo movimento restaura o estado anterior. A escolha de estado, distância e semente é determinística. O caminho inverso fornece a sequência conhecida de geração a partir do estado resolvido.
+O solver combina restrições de bordas, correspondência de pontas, consistência de arcos e busca com poda pelo menor número de giros. Também exige conexão ao gerador: um laço desconectado não conta como vitória. A solução conhecida fornece um limite inicial e garante um caminho válido. Os testes comparam o mínimo calculado com enumeração independente em tabuleiros pequenos.
 
-Nenhuma fase começa resolvida. As 30 fases são distintas. O solver armazena distâncias mínimas e a próxima ação em tabelas de até 65.536 estados. As tabelas são reutilizadas; nenhuma decisão depende de aleatoriedade. A trava de entrada durante o pulso e um identificador de sessão impedem que ações repetidas ou animações antigas alterem outro tabuleiro.
-
-O diário usa `AAAA-MM-DD` do calendário local como semente. Para a mesma data, todos recebem o mesmo tabuleiro. O resultado é local e não constitui ranking. Datas diferentes podem reutilizar um padrão; não há promessa de unicidade infinita.
+A trava de interação durante a rotação e o identificador de sessão impedem que toques repetidos ou animações antigas alterem outra fase.
 
 ## Arquivos
 
-- `index.html`: entrada e metadados em português.
-- `src/engine.js`: regras, solver, fases, diário e medalhas.
-- `src/main.js`: telas, controles, fluxo, compartilhamento e propagação SVG.
-- `src/style.css`: identidade visual, responsividade, animações e movimento reduzido.
-- `src/storage.js`: persistência com recuperação quando localStorage não está disponível.
-- `src/audio.js`: efeitos originais sintetizados por Web Audio.
-- `test/engine.test.js`: regras, reversibilidade, soluções e diário.
-- `test/storage.test.js`: persistência e falhas do armazenamento.
-- `test/ui.test.js`: integração da interface em DOM simulado, incluindo 30 vitórias e condições de concorrência.
-- `.github/workflows/pages.yml`: pipeline de testes, build e publicação.
-- `package.json` e `package-lock.json`: scripts e dependências reproduzíveis.
-- `dist/`: build de produção gerado, pronto para hospedagem estática.
+- `src/engine.js`: rotação, propagação, solver, fases, diário e medalhas.
+- `src/tutorial.js`: orientação das três primeiras fases.
+- `src/main.js`: telas, controle da partida, SVG, dicas e compartilhamento.
+- `src/style.css`: identidade visual, circuitos, responsividade e animações.
+- `src/audio.js`: síntese de áudio e controle de silêncio.
+- `src/storage.js`: progresso e preferências.
+- `test/`: testes do motor, tutorial na interface, áudio e armazenamento.
+- `.github/workflows/pages.yml`: testes, build e publicação automática.
 
-Happy DOM é apenas dependência de desenvolvimento; não integra o jogo publicado. Nenhuma biblioteca de interface é enviada ao navegador.
+A nova mecânica usa a chave `pulse-circuits-v2` no localStorage. Os resultados antigos de alternância de núcleos continuam intactos em `pulse-v1`; somente as preferências antigas são aproveitadas, pois aquelas fases são diferentes. A jornada de circuitos começa no tutorial.
 
 ## Publicar no GitHub Pages
 
-1. Crie um repositório e envie o conteúdo desta pasta para sua raiz, incluindo `.github/workflows/pages.yml` e `package-lock.json`.
-2. Use a branch `main` (ou ajuste o filtro no workflow).
-3. Em **Settings → Pages → Build and deployment**, selecione **GitHub Actions**.
-4. Faça push em `main` ou execute o workflow manualmente em **Actions**.
-5. O workflow instala dependências, executa testes, gera `dist/` e publica. A URL aparece no job `deploy` e na página de configurações.
+O workflow já está configurado. Em **Settings → Pages → Source**, selecione **GitHub Actions**. Cada push em `main` instala dependências, roda os testes, gera `dist/` e publica o resultado. Também é possível iniciar o workflow manualmente em Actions.
 
-O build usa `--base=./`, portanto funciona também sob `/nome-do-repositorio/`. Não há rotas que precisem de configuração do servidor.
+Para usar outro repositório, copie o conteúdo desta pasta para a raiz, incluindo o workflow e o lockfile. Se mantiver a subpasta `pulse/` em um repositório maior, copie `.github/workflows/pages.yml` para `.github/workflows/` na raiz; ele detecta a subpasta automaticamente.
 
-Se este jogo permanecer como subpasta `pulse/` em um repositório maior, copie o workflow para `.github/workflows/` **na raiz desse repositório**. Ele detecta automaticamente a subpasta. Repositório do projeto: https://github.com/kleuber14/pulse. Endereço esperado do GitHub Pages após a publicação: https://kleuber14.github.io/pulse/.
+## Verificação e limites
 
-## Validação e limites
+A suíte verifica as soluções das 30 fases, 366 desafios diários, correspondência de conexões, bordas, gerador fixo, reversibilidade, solução mínima por enumeração independente, progresso, ativação de áudio, tutorial, teclado, 30 vitórias completas e condições de concorrência.
 
-- **39 testes aprovados**, incluindo as soluções das 30 fases e 366 datas do diário.
-- Integração DOM: progressão inteira, medalhas, dicas, teclado, desfazer, reiniciar, preferências, bloqueio de fases, cliques repetidos e navegação durante animações.
-- Build Vite de produção aprovado, com caminhos relativos.
-- Não foi possível fazer inspeção visual em navegador real: o ambiente não disponibilizou a ferramenta de prévia exigida. Os testes DOM não validam renderização CSS, saída de áudio, Web Share nativo nem comportamento físico em Android. Faça essa conferência antes de uma publicação pública.
-- Compartilhamento usa Web Share quando disponível, depois área de transferência, depois texto selecionável. Algumas APIs dependem de contexto seguro (HTTPS ou localhost).
-- Progresso não sincroniza entre dispositivos. Limpar os dados do navegador apaga os resultados.
+Os testes de interface usam DOM simulado; os de áudio usam um contexto instrumentado. O ambiente não disponibilizou a ferramenta exigida para inspeção visual em navegador real. Renderização CSS, saída sonora física e experiência em Android precisam de conferência no dispositivo.
+
+Web Share é usado quando disponível, com alternativa de copiar e texto selecionável. Algumas APIs dependem de HTTPS ou localhost. Progresso não sincroniza entre dispositivos. Limpar os dados do navegador apaga os resultados. O desafio diário pode reutilizar padrões em datas diferentes.
