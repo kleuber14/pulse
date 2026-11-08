@@ -20,11 +20,11 @@ export function setAnalyticsConsent(accepted) {
   }
 }
 function initialize() {
-  if (!VALID_ID || analyticsConsent() !== "yes" || initialized || typeof document === "undefined") return;
+  if (!VALID_ID || initialized || typeof document === "undefined") return;
   initialized = true;
   window.dataLayer = window.dataLayer || [];
   window.gtag = function () { window.dataLayer.push(arguments); };
-  window.gtag("consent", "default", { analytics_storage: "granted", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
+  window.gtag("consent", "default", { analytics_storage: analyticsConsent() === "yes" ? "granted" : "denied", ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied" });
   window.gtag("js", new Date());
   window.gtag("config", ID, { send_page_view: true });
   const script = document.createElement("script");
@@ -33,7 +33,7 @@ function initialize() {
   document.head.appendChild(script);
 }
 export function track(event, parameters = {}) {
-  if (!VALID_ID || analyticsConsent() !== "yes") return;
+  if (!VALID_ID) return;
   initialize();
   if (typeof window.gtag !== "function") return;
   const safe = {};
