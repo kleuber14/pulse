@@ -360,7 +360,7 @@ function showDialog(content) {
 }
 function settings() {
   showDialog(
-    `<div class="settings"><div class="eyebrow">NO SEU RITMO</div><h2>Configurações</h2><label><div>Som <small>Notas a cada giro e ao completar a rede</small></div><input id="sound-pref" type="checkbox" ${data.sound ? "checked" : ""}></label><label><div>Animações <small>Respeita o movimento reduzido do dispositivo</small></div><input id="motion-pref" type="checkbox" ${data.motion ? "checked" : ""}></label><label class="volume-setting"><div>Volume</div><input id="volume-pref" type="range" min="0" max="1" step="0.05" value="${data.volume ?? 0.9}" aria-label="Volume dos efeitos"></label><p>Sem login. Seu apelido é público no placar.</p>${button("Tudo certo", "close", "primary")}</div>`,
+    `<div class="settings"><div class="eyebrow">NO SEU RITMO</div><h2>Configurações</h2><label><div>Som <small>Notas a cada giro e ao completar a rede</small></div><input id="sound-pref" type="checkbox" ${data.sound ? "checked" : ""}></label><label><div>Animações <small>Respeita o movimento reduzido do dispositivo</small></div><input id="motion-pref" type="checkbox" ${data.motion ? "checked" : ""}></label><label class="volume-setting"><div>Volume</div><input id="volume-pref" type="range" min="0" max="1" step="0.05" value="${data.volume ?? 0.9}" aria-label="Volume dos efeitos"></label><p>Sem login. Seu apelido é público no placar.</p>${analyticsAvailable() ? `<label><div>Estatísticas de uso <small>Permitir métricas do Google Analytics. Desative quando quiser.</small></div><input id="analytics-pref" type="checkbox" ${analyticsConsent() === "yes" ? "checked" : ""}></label>` : ""}${button("Tudo certo", "close", "primary")}</div>`,
   );
 }
 async function share() {
@@ -436,6 +436,7 @@ app.addEventListener("click", (e) => {
   }
 });
 app.addEventListener("change", (e) => {
+  if (e.target.id === "analytics-pref") { setAnalyticsConsent(e.target.checked); document.querySelector("#analytics-prompt")?.remove(); return; }
   if (e.target.id === "volume-pref") {
     data.volume = Number(e.target.value);
     setVolume(data.volume);
