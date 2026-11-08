@@ -15,6 +15,7 @@ import { load, save } from "./storage.js";
 import { tone, silence, setVolume } from "./audio.js";
 import { fetchTop, previewScore, submitScore, escapeText } from "./ranking.js";
 import { celebrate, creatorIntro } from "./effects.js";
+import { track, analyticsAvailable, analyticsConsent, setAnalyticsConsent } from "./analytics.js";
 const app = document.querySelector("#app"),
   data = load();
 let screen = "home",
@@ -97,6 +98,7 @@ function drawBoard(l, s, decorative = false) {
   return `<div class="board circuit-board ${decorative ? "decorative" : ""}" style="--n:${n}" ${decorative ? 'aria-hidden="true"' : 'role="group" aria-label="Circuito. Gire as peças para conectar todos os núcleos ao gerador verde. Setas para navegar; Enter ou espaço para girar."'}>${s.map((tile, i) => `<button class="node circuit-tile ${status.powered.has(i) ? "live" : ""} ${i === l.source ? "generator" : ""}" style="left:${(((i % n) + 0.5) * 100) / n}%;top:${((Math.floor(i / n) + 0.5) * 100) / n}%" data-node="${i}" data-ports="${tile}" ${decorative ? 'tabindex="-1" disabled' : `aria-label="${i === l.source ? "Gerador fixo" : "Peça giratória"}, linha ${Math.floor(i / n) + 1}, coluna ${(i % n) + 1}. ${status.powered.has(i) ? "Com energia" : "Sem energia"}." tabindex="${i === selected ? "0" : "-1"}" ${i === l.source ? 'aria-disabled="true"' : ""}`}><svg class="tile-svg" viewBox="0 0 100 100" aria-hidden="true"><g class="tile-wires">${wire(tile)}</g><circle class="tile-hub" cx="50" cy="50" r="${i === l.source ? 12 : 5}"/>${i === l.source ? '<path class="generator-symbol" d="M52 41 L46 50 H52 L48 59 L56 48 H50Z"/>' : ""}</svg><span class="turn-indicator" aria-hidden="true">↻</span></button>`).join("")}<div class="board-instruction" aria-hidden="true">${decorative ? "ENERGIA EM MOVIMENTO" : "TOQUE PARA GIRAR ↻"}</div></div>`;
 }
 function home() {
+  trackAbandonedTutorial();
   screen = "home";
   epoch++;
   busy = false;
@@ -122,6 +124,7 @@ async function loadTop() {
   }
 }
 function levelSelect() {
+  trackAbandonedTutorial();
   screen = "levels";
   epoch++;
   busy = false;
@@ -145,6 +148,7 @@ function levelSelect() {
   );
 }
 function start(l) {
+  trackAbandonedTutorial();
   epoch++;
   level = l;
   state = [...l.state];
@@ -154,6 +158,10 @@ function start(l) {
   hints = 0;
   selected = 1;
   screen = "game";
+  track("level_start", { level_number: l.daily ? 0 : l.number, mode: l.daily ? "daily" : "campaign" });
+  tutorialPending = !l.daily && l.number <= 3;
+  if (tutorialPending) track("tutorial_start", { level_number: l.number });
+  if (l.daily) track("daily_challenge_start");
   renderGame();
 }
 function renderGame() {
@@ -260,6 +268,9 @@ async function win() {
           .catch(() => null)
       : previewScore(data, proof).catch(() => null);
   persist();
+  track("level_complete", { level_number: level.daily ? 0 : level.number, mode: level.daily ? "daily" : "campaign", moves: history.length, medal: result.medal });
+  if (level.daily) track("daily_challenge_complete", { moves: history.length });
+  if (!level.daily && level.number <= 3) { track("tutorial_complete", { level_number: level.number }); tutorialPending = false; }
   await new Promise((r) => setTimeout(r, duration(600)));
   if (token !== epoch) return;
   busy = false;
@@ -355,9 +366,10 @@ function settings() {
 async function share() {
   const text = `PULSE ${level.daily ? "· Circuito diário " + level.date : "· Circuito " + level.number + "/50"}\n${history.length} giros · ${medal(history.length, level.solution.length)} ✦\nGire. Conecte. Deixe fluir.`;
   try {
-    if (navigator.share) await navigator.share({ title: "PULSE", text });
+    if (navigator.share) { await navigator.share({ title: "PULSE", text }); track("share_result", { mode: level.daily ? "daily" : "campaign" }); }
     else {
       await navigator.clipboard.writeText(text);
+      track("share_result", { mode: level.daily ? "daily" : "campaign" });
       announce("Resultado copiado.");
     }
   } catch (e) {
@@ -377,6 +389,8 @@ app.addEventListener("click", (e) => {
   const b = e.target.closest("[data-action]");
   if (!b) return;
   const a = b.dataset.action;
+  if (a === "analytics-yes") { setAnalyticsConsent(true); document.querySelector("#analytics-prompt")?.remove(); return; }
+  if (a === "analytics-no") { setAnalyticsConsent(false); document.querySelector("#analytics-prompt")?.remove(); return; }
   if (a === "refresh-ranking") return loadTop();
   if (a === "sound") return setSound(!data.sound);
   if (a === "settings") return settings();
@@ -459,5 +473,21 @@ app.addEventListener("keydown", (e) => {
     document.querySelector(`[data-node="${selected}"]`).focus();
   }
 });
+let tutorialPending = false;
+function trackAbandonedTutorial() {
+  if (tutorialPending && screen === "game" && level && !level.daily && level.number <= 3) {
+    track("tutorial_abandon", { level_number: level.number, moves: history.length });
+  }
+  tutorialPending = false;
+}
 home();
 creatorIntro(data.motion);
+if (analyticsAvailable() && analyticsConsent() === null) {
+  const prompt = document.createElement("div");
+  prompt.id = "analytics-prompt";
+  prompt.setAttribute("role", "group");
+  prompt.setAttribute("aria-label", "Preferência de métricas");
+  prompt.style.cssText = "position:fixed;bottom:12px;left:12px;right:12px;max-width:520px;margin:auto;padding:16px;background:#17243b;color:white;border:1px solid #6381a0;border-radius:14px;z-index:9999;box-shadow:0 10px 40px #0008;font:14px system-ui";
+  prompt.innerHTML = '<p style="margin:0 0 12px">Podemos coletar estatísticas anônimas de uso para melhorar o PULSE? Opcional; você pode jogar normalmente sem aceitar.</p><div style="display:flex;gap:10px"><button data-action="analytics-yes" style="padding:10px;cursor:pointer">Aceitar</button><button data-action="analytics-no" style="padding:10px;cursor:pointer">Recusar</button></div>';
+  app.appendChild(prompt);
+}
