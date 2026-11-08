@@ -8,7 +8,7 @@
 5. Execute o workflow **Publish PULSE to GitHub Pages** (Actions > Run workflow) após o merge do PR. A variável é aplicada no *build*, não em tempo de execução.
 6. Abra o jogo, aceite o uso de métricas e confira o **Realtime** e **DebugView** da sua propriedade GA4. Bloqueadores de anúncios podem impedir a coleta.
 
-Sem ID válido, o jogo funciona normalmente e não carrega o Google Analytics. Com o ID, a tag GA4 só é carregada após a aceitação. O jogador pode revogar o consentimento em **Configurações > Estatísticas de uso**. A coleta anterior à revogação não é excluída automaticamente.
+Sem ID válido, o jogo funciona normalmente e não carrega o Google Analytics. Com ID válido, o GA4 inicia em modo de consentimento avançado com `analytics_storage=denied` quando não houver aceite anterior: **não há banner inicial e não são autorizados cookies analíticos**, mas o Google recebe pings de eventos sem cookies para medição/modelagem. O jogador pode conceder ou revogar autorização de armazenamento em **Configurações > Estatísticas de uso**. A coleta anterior à revogação não é excluída automaticamente. Uma política de privacidade acessível e uma avaliação de base legal pela LGPD permanecem necessárias mesmo para pings sem cookies.
 
 ## Eventos
 - `level_start`: `level_number`, `mode` (campaign/daily)
@@ -20,7 +20,7 @@ Sem ID válido, o jogo funciona normalmente e não carrega o Google Analytics. C
 O número do nível diário é 0 para não registrar datas/identificadores pessoais. Não enviar apelidos do ranking, dados pessoais ou identificadores de jogador ao GA4. Para analisar os parâmetros específicos nos relatórios, configure **Definições personalizadas** no GA4.
 
 ## Retenção
-Os relatórios de retenção do GA4 permitem analisar retorno nos dias seguintes, como D1 e D7, após volume suficiente de dados. A coleta não é retroativa: usuários anteriores à ativação não serão contabilizados. Configure transparência de privacidade adequada ao público e legislação aplicável.
+Os relatórios de retenção do GA4 podem analisar retornos como D1 e D7 quando há identificação e volume suficientes. Com cookies de análise negados por padrão, **não há identificação individual confiável para retenção**; alguns relatórios podem depender de modelagem, de elegibilidade e de volume de dados. A coleta não é retroativa: usuários anteriores à ativação não serão contabilizados. Configure transparência de privacidade adequada ao público e legislação aplicável.
 
 ## Validação
 - `npm test`
