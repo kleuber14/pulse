@@ -1,5 +1,5 @@
 const STORAGE_KEY = "pulse-analytics-consent-v1";
-const ID = (import.meta.env?.VITE_GA4_MEASUREMENT_ID || "").trim();
+const ID = (import.meta.env?.VITE_GA4_MEASUREMENT_ID || "G-QMC55XB137").trim();
 const VALID_ID = /^G-[A-Z0-9]+$/.test(ID);
 let initialized = false;
 
