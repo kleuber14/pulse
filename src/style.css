@@ -2110,3 +2110,14 @@ button {
     font-size: 12px;
   }
 }
+/* Persistent creator signature during campaign and daily play. */
+.brand-group {display:flex;align-items:center;gap:20px;min-width:0;}
+.creator-credit {display:block;width:108px;height:66px;object-fit:contain;flex-shrink:0;}
+@media(max-width:650px){
+ .playing-header .brand-group {gap:12px;}
+ .playing-header .brand {font-size:21px;letter-spacing:3px;}
+ .playing-header .creator-credit {width:78px;height:48px;}
+ .playing-header nav {gap:8px;}
+ .playing-header .sound-toggle {width:44px;min-width:44px;height:44px;padding:0;font-size:22px;}
+ .playing-header .sound-toggle span {display:none;}
+}

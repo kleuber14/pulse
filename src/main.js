@@ -40,7 +40,7 @@ function unlocked() {
   return i;
 }
 function header() {
-  return `<header><a class="brand" href="#" aria-label="PULSE início">P<span>U</span>LSE<i></i></a><nav>${button("Jogar", "continue", screen === "game" ? "nav-active" : "")}${button("Fases", "levels", screen === "levels" ? "nav-active" : "")}${button('Diário <span class="nav-dot"></span>', "daily")}${button(data.sound ? "♪ <span>Som ligado</span>" : "♪ <span>Ativar som</span>", "sound", "sound-toggle", `aria-label="${data.sound ? "Desligar" : "Ligar"} som" aria-pressed="${data.sound}"`)}${button("⚙", "settings", "icon", 'aria-label="Configurações"')}</nav></header>`;
+  return `<header class="${screen === "game" ? "playing-header" : ""}"><div class="brand-group"><a class="brand" href="#" aria-label="PULSE início">P<span>U</span>LSE<i></i></a>${screen === "game" ? '<img class="creator-credit" src="./creator-logo.webp" alt="Kleuber Avila, criador do jogo" width="108" height="66" decoding="async">' : ""}</div><nav>${button("Jogar", "continue", screen === "game" ? "nav-active" : "")}${button("Fases", "levels", screen === "levels" ? "nav-active" : "")}${button('Diário <span class="nav-dot"></span>', "daily")}${button(data.sound ? "♪ <span>Som ligado</span>" : "♪ <span>Ativar som</span>", "sound", "sound-toggle", `aria-label="${data.sound ? "Desligar" : "Ligar"} som" aria-pressed="${data.sound}"`)}${button("⚙", "settings", "icon", 'aria-label="Configurações"')}</nav></header>`;
 }
 function footer() {
   return "<footer><span>GIRE. CONECTE. DEIXE FLUIR.</span><span>NO SEU RITMO <i>✦</i></span></footer>";
