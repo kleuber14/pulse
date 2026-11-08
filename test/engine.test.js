@@ -76,7 +76,7 @@ test("três primeiros circuitos ensinam em um, dois e três giros", () => {
   );
   assert.equal(
     new Set(levels.map((l) => JSON.stringify([l.n, l.state]))).size,
-    30,
+    50,
   );
   assert.ok(levels.slice(0, 10).every((l) => l.n === 3));
   assert.ok(levels.slice(10).every((l) => l.n === 4));

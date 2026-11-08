@@ -8,10 +8,13 @@ import {
   medal,
   directions,
   neighbor,
+  rotate,
 } from "./engine.js";
 import { tutorial } from "./tutorial.js";
 import { load, save } from "./storage.js";
-import { tone, silence } from "./audio.js";
+import { tone, silence, setVolume } from "./audio.js";
+import { fetchTop, previewScore, submitScore, escapeText } from "./ranking.js";
+import { celebrate, creatorIntro } from "./effects.js";
 const app = document.querySelector("#app"),
   data = load();
 let screen = "home",
@@ -23,7 +26,8 @@ let screen = "home",
   epoch = 0,
   hints = 0,
   selected = 1;
-const chapters = ["CONEXÃO", "CIRCUITOS", "FLUXO"];
+setVolume(data.volume ?? 0.9);
+const chapters = ["CONEXÃO", "CIRCUITOS", "FLUXO", "RESSONÂNCIA", "HARMONIA"];
 const button = (text, action, cls = "", extra = "") =>
   `<button class="${cls}" data-action="${action}" ${extra}>${text}</button>`;
 function persist() {
@@ -31,7 +35,7 @@ function persist() {
 }
 function unlocked() {
   let i = 1;
-  while (data.wins[i] && i < 30) i++;
+  while (data.wins[i] && i < levels.length) i++;
   return i;
 }
 function header() {
@@ -96,21 +100,36 @@ function home() {
   screen = "home";
   epoch++;
   busy = false;
-  const day = daily(),
-    completed = Object.keys(data.wins).length;
+  const completed = Object.keys(data.wins).length;
   shell(
-    `<main class="home"><section class="hero-copy"><div class="eyebrow"><span></span> ENCONTRE SEU FLUXO</div><h1>Conecte a energia.<br>Deixe a mente <em>fluir.</em></h1><p>Gire as peças. Una os caminhos.<br>Leve a luz do gerador até toda a rede.</p><div class="hero-actions">${button("Jogar com som <span>♪</span>", "play-sound", "primary")}${button("Continuar <span>→</span>", "continue", "secondary", completed ? "" : "disabled")}</div>${button("Prefiro jogar sem som →", "play-silent", "text-button silent-start")}<div class="hero-meta"><span>30 CIRCUITOS</span><b>·</b><span>3 CAPÍTULOS</span><b>·</b><span>SEM PRESSA</span></div></section><section class="hero-art"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="art-label"><span>●</span> SIGA A LUZ</div>${drawBoard(levels[0], levels[0].target, true)}<div class="art-caption"><span>GIRE. CONECTE. RESPIRE.</span><span>↗</span></div></section><section class="home-bottom"><button class="daily-card" data-action="daily"><span class="daily-icon">✳</span><div><small>UM MOMENTO SÓ SEU</small><h2>Circuito diário <span>↗</span></h2><p>${day.date.split("-").reverse().join(".")} · ${data.daily[day.date] ? `Seu melhor: ${data.daily[day.date].moves} giros` : "Uma nova rede para descobrir."}</p></div><span class="pill">DISPONÍVEL</span></button><div class="progress-card"><div><small>SUA JORNADA</small><span>${completed}<b> / 30</b></span></div><div class="progress-track"><i style="width:${(completed / 30) * 100}%"></i></div><p>Comece com três circuitos guiados.</p></div></section></main>`,
+    `<main class="home minimal-home"><section class="hero-copy"><h1>Conecte.<br>Deixe <em>fluir.</em></h1><p>Gire as peças. Acenda toda a rede.</p><div class="hero-actions">${button("Jogar com som ♪", "play-sound", "primary")}${completed ? button("Continuar →", "continue", "secondary") : ""}</div>${button("Jogar sem som", "play-silent", "text-button silent-start")}<div class="home-links">${button("Fases · 50", "levels", "secondary")}${button("Diário ✳", "daily", "secondary")}</div></section><section class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div>${drawBoard(levels[0], levels[0].target, true)}</section><section class="online-ranking"><div class="ranking-heading"><h2>Top 3 geral</h2>${button("↻", "refresh-ranking", "text-button", 'aria-label="Atualizar ranking"')}</div><div id="leaderboard" aria-live="polite"><p>Carregando placar…</p></div><p class="ranking-note">Mais fases e menos giros. Sem cadastro.</p></section></main>`,
   );
+  loadTop();
+}
+async function loadTop() {
+  const container = document.querySelector("#leaderboard");
+  if (!container) return;
+  try {
+    const result = await fetchTop();
+    if (!container.isConnected) return;
+    container.innerHTML = result.top.length
+      ? `<ol class="podium">${result.top.map((row) => `<li><b>${row.rank}</b><span>${escapeText(row.alias)}</span><strong>${Number(row.score).toLocaleString("pt-BR")} <small>pts</small></strong></li>`).join("")}</ol>`
+      : "<p>O primeiro nome pode ser o seu.</p>";
+  } catch {
+    if (container.isConnected)
+      container.innerHTML =
+        "<p>Placar indisponível. Você pode jogar normalmente.</p>";
+  }
 }
 function levelSelect() {
   screen = "levels";
   epoch++;
   busy = false;
   shell(
-    `<main class="level-page"><div class="eyebrow">SUA JORNADA</div><h1>Uma conexão de cada <em>vez.</em></h1><p class="muted">Nas três primeiras fases, a luz mostra o caminho.</p><div class="chapters">${chapters
+    `<main class="level-page"><div class="eyebrow">SUA JORNADA</div><h1>Escolha seu <em>circuito.</em></h1><div class="chapters">${chapters
       .map(
         (c, k) =>
-          `<section class="chapter"><div class="chapter-title"><span>0${k + 1} / ${c}</span><small>${levels.slice(k * 10, k * 10 + 10).filter((l) => data.wins[l.number]).length} DE 10</small></div><p>${["Aprenda a girar e siga a energia.", "Encontre os caminhos que se encontram.", "Mais conexões. Um fluxo contínuo."][k]}</p><div class="level-grid">${levels
+          `<section class="chapter"><div class="chapter-title"><span>0${k + 1} / ${c}</span><small>${levels.slice(k * 10, k * 10 + 10).filter((l) => data.wins[l.number]).length} DE 10</small></div><p>${["Aprenda a conectar.", "Feche os caminhos.", "Siga a energia.", "Encontre novos laços.", "Una toda a rede."][k]}</p><div class="level-grid">${levels
             .slice(k * 10, k * 10 + 10)
             .map((l) =>
               button(
@@ -141,7 +160,7 @@ function renderGame() {
   const status = network(level, state),
     lesson = tutorial(level, state, solve(level, state));
   shell(
-    `<main class="game-page"><div class="game-top">${button("← <span>Fases</span>", "levels", "text-button")}<span>${level.daily ? "CIRCUITO DIÁRIO · " + level.date : `CAPÍTULO 0${Math.ceil(level.number / 10)} / ${chapters[Math.ceil(level.number / 10) - 1]}`}</span><span class="stage-id">${level.daily ? "✳" : String(level.number).padStart(2, "0")}<small>${level.daily ? "DO DIA" : "/ 30"}</small></span></div><div class="game-heading"><div class="eyebrow">${lesson ? lesson.lesson : "GIRE AS PEÇAS · CONECTE A REDE"}</div><h1>${lesson ? lesson.title : "Leve a energia a todos os núcleos."}</h1><p id="instruction">${lesson ? lesson.text : level.daily && data.daily[level.date] ? `Seu melhor hoje: ${data.daily[level.date].moves} giros · ${data.daily[level.date].medal}.` : "Conecte todos ao gerador verde, sem pontas soltas."}</p></div><div class="game-layout"><aside class="game-aside"><span class="tiny-label">COMO JOGAR</span><h3>Gire. Conecte.</h3><p>Cada toque gira uma peça em 90°. A luz percorre os fios conectados ao gerador.</p><div class="circuit-legend"><span><i class="source-dot"></i> Gerador fixo</span><span><i></i> Com energia</span><span><i class="unlit-dot"></i> Sem conexão</span></div></aside><div class="board-wrap">${drawBoard(level, state)}<div class="board-status"><span><i></i> <b id="lit">${status.powered.size}</b> / ${state.length} COM ENERGIA</span><span id="board-state">${status.loose} PONTAS SOLTAS</span></div><div id="tutorial" class="tutorial-card" ${lesson ? "" : "hidden"} role="status" aria-live="polite"></div></div><aside class="stats"><span class="tiny-label">GIROS</span><strong id="moves">00</strong><div class="efficiency"><span>◇</span><div><small>FLUXO IDEAL</small><p>Referência: ${level.solution.length} giros</p></div></div><p class="gentle">Sem tempo limite.<br>Uma conexão de cada vez.</p></aside></div><div class="game-controls">${button("↶ <span>Desfazer</span>", "undo", "secondary", "disabled")}${button("⟳ <span>Reiniciar</span>", "restart", "secondary")}${button("✧ <span>Dica</span>", "hint", "secondary")}</div><div id="hint" class="hint-area" role="status" aria-live="polite"></div></main>`,
+    `<main class="game-page"><div class="game-top">${button("← <span>Fases</span>", "levels", "text-button")}<span>${level.daily ? "CIRCUITO DIÁRIO · " + level.date : `CAPÍTULO 0${Math.ceil(level.number / 10)} / ${chapters[Math.ceil(level.number / 10) - 1]}`}</span><span class="stage-id">${level.daily ? "✳" : String(level.number).padStart(2, "0")}<small>${level.daily ? "DO DIA" : "/ 50"}</small></span></div><div class="game-heading"><div class="eyebrow">${lesson ? lesson.lesson : ""}</div><h1>${lesson ? lesson.title : "Acenda toda a rede."}</h1><p id="instruction">${lesson ? lesson.text : level.daily && data.daily[level.date] ? `Seu melhor hoje: ${data.daily[level.date].moves} giros · ${data.daily[level.date].medal}.` : "Gire para conectar."}</p></div><div class="game-layout"><aside class="game-aside"><span class="tiny-label">COMO JOGAR</span><h3>Gire. Conecte.</h3><p>Cada toque gira uma peça em 90°. A luz percorre os fios conectados ao gerador.</p><div class="circuit-legend"><span><i class="source-dot"></i> Gerador fixo</span><span><i></i> Com energia</span><span><i class="unlit-dot"></i> Sem conexão</span></div></aside><div class="board-wrap">${drawBoard(level, state)}<div class="board-status"><span><i></i> <b id="lit">${status.powered.size}</b> / ${state.length} COM ENERGIA</span><span id="board-state">${status.loose} PONTAS SOLTAS</span></div><div id="tutorial" class="tutorial-card" ${lesson ? "" : "hidden"} role="status" aria-live="polite"></div></div><aside class="stats"><span class="tiny-label">GIROS</span><strong id="moves">00</strong><div class="efficiency"><span>◇</span><div><small>FLUXO IDEAL</small><p>Referência: ${level.solution.length} giros</p></div></div><p class="gentle">Sem tempo limite.<br>Uma conexão de cada vez.</p></aside></div><div class="game-controls">${button("↶ <span>Desfazer</span>", "undo", "secondary", "disabled")}${button("⟳ <span>Reiniciar</span>", "restart", "secondary")}${button("✧ <span>Dica</span>", "hint", "secondary")}</div><div id="hint" class="hint-area" role="status" aria-live="polite"></div></main>`,
   );
   updateTutorial();
 }
@@ -163,10 +182,7 @@ function updateTutorial() {
     row = Math.floor(index / level.n) + 1,
     col = (index % level.n) + 1;
   document.querySelector(`[data-node="${index}"]`).classList.add("guided");
-  const progress = history.length
-    ? `${status.powered.size} de ${state.length} núcleos com energia. `
-    : "";
-  card.innerHTML = `<span class="tutorial-step">↻</span><div><strong>${history.length ? "Agora conecte o próximo trecho." : "Toque na peça destacada."}</strong><p>${progress}Linha ${row}, coluna ${col}. ${lesson.remaining === 1 ? "Falta um giro para completar a rede." : `${lesson.remaining} giros podem completar o caminho.`}</p></div>`;
+  card.innerHTML = `<span class="tutorial-step">↻</span><div><strong>${history.length ? "Conecte o próximo trecho." : "Toque na peça marcada."}</strong><p>${lesson.remaining === 1 ? "Mais um giro." : "Siga a luz."}</p></div>`;
 }
 function updateBoard() {
   const status = network(level, state);
@@ -201,9 +217,11 @@ async function turn(index) {
   if (busy || screen !== "game" || network(level, state).solved) return;
   if (index === level.source)
     return announce("Este é o gerador fixo. Gire as peças ao redor dele.");
+  if (rotate(state[index]) === state[index])
+    return announce("Esta junção já está alinhada.");
   busy = true;
   const token = epoch;
-  history.push({ state: [...state], angles: [...angles] });
+  history.push({ state: [...state], angles: [...angles], index });
   state = move(level, state, index);
   angles[index] += 90;
   tone(data.sound);
@@ -227,20 +245,99 @@ async function win() {
     store = level.daily ? data.daily : data.wins,
     key = level.daily ? level.date : level.number;
   if (!store[key] || store[key].moves > result.moves) store[key] = result;
+  const proof = {
+    level: level.number,
+    turns: history.map((entry) => entry.index),
+  };
+  const recordCheck = level.daily
+    ? Promise.resolve(null)
+    : data.alias
+      ? submitScore(data, proof, data.alias)
+          .then((saved) => ({
+            saved,
+            eligible: saved.improved && !!saved.rank,
+          }))
+          .catch(() => null)
+      : previewScore(data, proof).catch(() => null);
   persist();
   await new Promise((r) => setTimeout(r, duration(600)));
   if (token !== epoch) return;
   busy = false;
   showDialog(
-    `<div class="victory"><div class="medal ${result.medal}">✦</div><div class="eyebrow">A ENERGIA ENCONTROU SEU CAMINHO</div><h2>Tudo flui.</h2><p>Medalha de ${result.medal} · ${history.length} giros</p><small>${level.number <= 3 && !level.daily ? ["Um toque conecta caminhos.", "A luz segue os fios conectados.", "Você já sabe: gire, una e complete a rede."][level.number - 1] : `Referência: ${level.solution.length} giros`}</small><div class="victory-actions">${button(level.daily ? "Voltar ao início" : level.number === 30 ? "Jornada concluída ↗" : "Próximo circuito ↗", level.daily || level.number === 30 ? "home" : "next", "primary")}${button("Compartilhar resultado", "share", "secondary")}${button("Revisitar circuito", "close", "text-button")}</div></div>`,
+    `<div class="victory"><div class="medal ${result.medal}">✦</div><div class="eyebrow">A ENERGIA ENCONTROU SEU CAMINHO</div><h2>Tudo flui.</h2><p>Medalha de ${result.medal} · ${history.length} giros</p><small>${level.number <= 3 && !level.daily ? ["Um toque conecta caminhos.", "A luz segue os fios conectados.", "Você já sabe: gire, una e complete a rede."][level.number - 1] : `Referência: ${level.solution.length} giros`}</small><div class="victory-actions">${button(level.daily ? "Voltar ao início" : level.number === levels.length ? "Jornada concluída ↗" : "Próximo circuito ↗", level.daily || level.number === levels.length ? "home" : "next", "primary")}${button("Compartilhar resultado", "share", "secondary")}${button("Revisitar circuito", "close", "text-button")}</div></div>`,
   );
+  recordCheck.then((result) => {
+    if (result && token === epoch && screen === "game")
+      handleRecord(result, proof);
+  });
   document.querySelector("#hint").innerHTML = button(
-    level.daily || level.number === 30
+    level.daily || level.number === levels.length
       ? "Voltar ao início"
       : "Próximo circuito ↗",
-    level.daily || level.number === 30 ? "home" : "next",
+    level.daily || level.number === levels.length ? "home" : "next",
     "text-button",
   );
+}
+async function handleRecord(result, proof) {
+  const victory = document.querySelector(".victory");
+  if (!victory) return;
+  if (result.eligible) {
+    victory.classList.add("record-victory");
+    victory.querySelector("h2").textContent = "Novo recorde!";
+    victory.querySelector(".eyebrow").textContent =
+      "VOCÊ ENTROU NA DISPUTA PELO TOP 3";
+    tone(data.sound, "record");
+    celebrate(data.motion);
+  }
+  if (result.saved) {
+    if (result.saved.rank) {
+      const note = document.createElement("p");
+      note.className = "rank-success";
+      note.textContent = `${result.saved.rank}º no ranking geral · ${data.alias}`;
+      victory.querySelector(".victory-actions").before(note);
+    }
+    return;
+  }
+  if (data.alias) {
+    try {
+      const saved = await submitScore(data, proof, data.alias);
+      if (victory.isConnected && saved.rank) {
+        const note = document.createElement("p");
+        note.className = "rank-success";
+        note.textContent = `${saved.rank}º no ranking geral · ${data.alias}`;
+        victory.querySelector(".victory-actions").before(note);
+      }
+    } catch {
+      if (victory.isConnected)
+        announce("Sem conexão com o placar. Sua fase foi salva.");
+    }
+    return;
+  }
+  if (!result.eligible) return;
+  const form = document.createElement("form");
+  form.className = "record-form";
+  form.innerHTML =
+    '<label for="record-name">Seu nome no top 3</label><div><input id="record-name" name="alias" autocomplete="nickname" maxlength="18" minlength="2" placeholder="Seu apelido" required><button class="primary" type="submit">Salvar</button></div><small>Opcional. O apelido ficará público.</small><p class="record-message" role="status"></p>';
+  victory.querySelector(".victory-actions").before(form);
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const name = form.elements.alias.value.trim();
+    if (name.length < 2) return;
+    const submit = form.querySelector("button"),
+      message = form.querySelector(".record-message");
+    submit.disabled = true;
+    message.textContent = "Salvando…";
+    try {
+      const response = await submitScore(data, proof, name);
+      data.alias = name;
+      persist();
+      if (!form.isConnected) return;
+      form.innerHTML = `<p class="rank-success">${response.rank ? response.rank + "º no ranking geral" : "Resultado salvo"} · ${escapeText(name)}</p>`;
+    } catch (error) {
+      message.textContent = error.message;
+      submit.disabled = false;
+    }
+  };
 }
 function showDialog(content) {
   const dialog = document.querySelector("#dialog");
@@ -252,11 +349,11 @@ function showDialog(content) {
 }
 function settings() {
   showDialog(
-    `<div class="settings"><div class="eyebrow">NO SEU RITMO</div><h2>Configurações</h2><label><div>Som <small>Notas a cada giro e ao completar a rede</small></div><input id="sound-pref" type="checkbox" ${data.sound ? "checked" : ""}></label><label><div>Animações <small>Respeita o movimento reduzido do dispositivo</small></div><input id="motion-pref" type="checkbox" ${data.motion ? "checked" : ""}></label><p>Seu progresso fica salvo neste navegador.</p>${button("Tudo certo", "close", "primary")}</div>`,
+    `<div class="settings"><div class="eyebrow">NO SEU RITMO</div><h2>Configurações</h2><label><div>Som <small>Notas a cada giro e ao completar a rede</small></div><input id="sound-pref" type="checkbox" ${data.sound ? "checked" : ""}></label><label><div>Animações <small>Respeita o movimento reduzido do dispositivo</small></div><input id="motion-pref" type="checkbox" ${data.motion ? "checked" : ""}></label><label class="volume-setting"><div>Volume</div><input id="volume-pref" type="range" min="0" max="1" step="0.05" value="${data.volume ?? 0.9}" aria-label="Volume dos efeitos"></label><p>Sem login. Seu apelido é público no placar.</p>${button("Tudo certo", "close", "primary")}</div>`,
   );
 }
 async function share() {
-  const text = `PULSE ${level.daily ? "· Circuito diário " + level.date : "· Circuito " + level.number + "/30"}\n${history.length} giros · ${medal(history.length, level.solution.length)} ✦\nGire. Conecte. Deixe fluir.`;
+  const text = `PULSE ${level.daily ? "· Circuito diário " + level.date : "· Circuito " + level.number + "/50"}\n${history.length} giros · ${medal(history.length, level.solution.length)} ✦\nGire. Conecte. Deixe fluir.`;
   try {
     if (navigator.share) await navigator.share({ title: "PULSE", text });
     else {
@@ -280,6 +377,7 @@ app.addEventListener("click", (e) => {
   const b = e.target.closest("[data-action]");
   if (!b) return;
   const a = b.dataset.action;
+  if (a === "refresh-ranking") return loadTop();
   if (a === "sound") return setSound(!data.sound);
   if (a === "settings") return settings();
   if (a === "close") return document.querySelector("#dialog").close();
@@ -326,6 +424,13 @@ app.addEventListener("click", (e) => {
   }
 });
 app.addEventListener("change", (e) => {
+  if (e.target.id === "volume-pref") {
+    data.volume = Number(e.target.value);
+    setVolume(data.volume);
+    persist();
+    tone(data.sound);
+    return;
+  }
   if (e.target.id === "sound-pref") return setSound(e.target.checked);
   if (e.target.id === "motion-pref") {
     data.motion = e.target.checked;
@@ -355,3 +460,4 @@ app.addEventListener("keydown", (e) => {
   }
 });
 home();
+creatorIntro(data.motion);

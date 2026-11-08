@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { tone, silence } from "../src/audio.js";
+import { tone, silence, setVolume } from "../src/audio.js";
 test("áudio respeita silêncio, desbloqueia contexto suspenso e sintetiza giros e vitória", async () => {
   let created = 0,
     resumed = 0,
@@ -51,6 +51,11 @@ test("áudio respeita silêncio, desbloqueia contexto suspenso e sintetiza giros
   assert.equal(starts, 2);
   assert.equal(await tone(true, true), true);
   assert.equal(starts, 6);
+  assert.equal(await tone(true, "record"), true);
+  assert.equal(starts, 12);
+  setVolume(0);
+  assert.equal(await tone(true), false);
+  setVolume(0.9);
   silence();
   assert.ok(stops >= 12);
 });

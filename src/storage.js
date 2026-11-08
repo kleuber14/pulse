@@ -6,12 +6,13 @@ export function load() {
     return {
       wins: {},
       daily: {},
+      volume: 0.9,
       sound: old.sound === true,
       motion: old.motion !== false,
       ...saved,
     };
   } catch {
-    return { wins: {}, daily: {}, sound: false, motion: true };
+    return { wins: {}, daily: {}, volume: 0.9, sound: false, motion: true };
   }
 }
 export function save(data) {

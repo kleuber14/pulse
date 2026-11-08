@@ -1,0 +1,32 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { Window } from "happy-dom";
+import { creatorIntro, celebrate } from "../src/effects.js";
+test("crédito do criador dura 2,3 segundos, pode ser pulado e não reaparece na sessão", () => {
+  const w = new Window();
+  globalThis.window = w;
+  globalThis.document = w.document;
+  globalThis.matchMedia = () => ({ matches: false });
+  w.document.body.innerHTML = '<div id="app"></div>';
+  let delay;
+  const original = globalThis.setTimeout;
+  globalThis.setTimeout = (callback, ms) => {
+    delay = ms;
+    return 0;
+  };
+  creatorIntro();
+  assert.equal(delay, 2300);
+  assert.ok(w.document.querySelector(".creator-intro img"));
+  assert.equal(w.document.querySelector("#app").inert, true);
+  w.document.querySelector(".creator-intro button").click();
+  assert.equal(w.document.querySelector(".creator-intro"), null);
+  assert.equal(w.document.querySelector("#app").inert, false);
+  creatorIntro();
+  assert.equal(w.document.querySelector(".creator-intro"), null);
+  celebrate(false);
+  assert.equal(w.document.querySelector(".confetti"), null);
+  celebrate(true);
+  assert.equal(w.document.querySelectorAll(".confetti i").length, 32);
+  globalThis.setTimeout = original;
+  w.happyDOM.abort();
+});

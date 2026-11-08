@@ -2,7 +2,7 @@
 
 **Gire. Conecte. Deixe fluir.**
 
-Puzzle HTML5 completo, em Vite, JavaScript, SVG e CSS. A mecânica desta versão é girar peças para formar uma rede de energia conectada. A identidade visual é própria. Não há contas, anúncios, analytics, backend nem imagens ou fontes externas.
+Puzzle HTML5 completo, em Vite, JavaScript, SVG e CSS. A mecânica desta versão é girar peças para formar uma rede de energia conectada. A identidade visual é própria. Não há contas, anúncios ou analytics. O jogo está no GitHub Pages; o ranking usa uma pequena API Sites com banco D1. A logo do criador é um arquivo local.
 
 Jogar: https://kleuber14.github.io/pulse/
 
@@ -36,7 +36,7 @@ As fases 1, 2 e 3 têm tutoriais visuais, respectivamente com soluções de 1, 2
 
 O início oferece **Jogar com som**, que habilita o áudio dentro do gesto do usuário exigido pelos navegadores, ou **Prefiro jogar sem som**. Há um controle visível de som durante a partida e nas configurações. Os efeitos de giros e vitória são sintetizados com Web Audio; não há música comercial. As preferências de som e movimento são salvas. A preferência de movimento reduzido do dispositivo prevalece.
 
-Há 30 circuitos em três capítulos: **Conexão**, **Circuitos** e **Fluxo**. Os primeiros dez usam 3×3 e os demais 4×4. Capítulos posteriores acrescentam laços à rede e mais peças desalinhadas. Não há cronômetro ou punição por tentar. Desfazer restaura os fios e a orientação exatos.
+Há 50 circuitos em cinco capítulos de dez fases: **Conexão**, **Circuitos**, **Fluxo**, **Ressonância** e **Harmonia**. Os primeiros dez usam 3×3 e os demais 4×4. Capítulos posteriores acrescentam laços à rede e mais peças desalinhadas. Não há cronômetro ou punição por tentar. Desfazer restaura os fios e a orientação exatos.
 
 A dica primeiro explica como a energia flui; solicitações seguintes apontam um giro de uma solução mínima do estado atual. Ouro corresponde à referência ideal, prata até ideal + 3 giros e bronze acima disso. Há desafio diário determinístico por data local e melhor resultado salvo neste navegador, sem ranking global.
 
@@ -73,8 +73,26 @@ Para usar outro repositório, copie o conteúdo desta pasta para a raiz, incluin
 
 ## Verificação e limites
 
-A suíte verifica as soluções das 30 fases, 366 desafios diários, correspondência de conexões, bordas, gerador fixo, reversibilidade, solução mínima por enumeração independente, progresso, ativação de áudio, tutorial, teclado, 30 vitórias completas e condições de concorrência.
+A suíte verifica as soluções das 50 fases, 366 desafios diários, correspondência de conexões, bordas, gerador fixo, reversibilidade, solução mínima por enumeração independente, progresso, ativação de áudio, tutorial, teclado, 50 vitórias completas e condições de concorrência.
 
 Os testes de interface usam DOM simulado; os de áudio usam um contexto instrumentado. O ambiente não disponibilizou a ferramenta exigida para inspeção visual em navegador real. Renderização CSS, saída sonora física e experiência em Android precisam de conferência no dispositivo.
 
 Web Share é usado quando disponível, com alternativa de copiar e texto selecionável. Algumas APIs dependem de HTTPS ou localhost. Progresso não sincroniza entre dispositivos. Limpar os dados do navegador apaga os resultados. O desafio diário pode reutilizar padrões em datas diferentes.
+
+## Versão mobile, créditos e recordes
+
+A entrada foi reduzida a título, uma instrução, botões grandes e top 3. No celular, a arte decorativa e os rótulos repetidos são omitidos. Textos principais usam 16–18 px e controles têm pelo menos 44–48 px. A partida mantém a dica curta junto ao tabuleiro e evita referências pequenas no topo.
+
+A abertura de Kleuber Avila dura 2,3 segundos, pode ser pulada e aparece uma vez por sessão da aba. A logo anexada foi preparada como asset transparente. Confetes são feitos em CSS e desativados quando o aparelho pede movimento reduzido.
+
+O áudio ganhou notas com mais presença em alto-falantes de celular, envelope mais forte, compressor e controle de volume. O volume físico do aparelho continua sendo controlado pelo sistema. A fanfarra de recorde é diferente do som comum de conclusão.
+
+## Ranking online
+
+A API está em https://pulse-ranking-kleuber14.kleuber14.chatgpt.site e usa Sites com D1. As migrações geradas e o código estão em `ranking-service/`. Não há chave administrativa no navegador. Uma identificação aleatória salva no aparelho vincula os resultados; não é necessário login. Sem conta, o mesmo jogador em aparelhos diferentes terá identificações diferentes.
+
+A cada vitória, o servidor recebe a sequência de giros e verifica a solução. O resultado vale até 1.000 pontos por fase, proporcional à eficiência, somando apenas o melhor resultado de cada circuito. Repetições não acumulam pontos. Empates favorecem menos giros e o registro mais antigo. O diário não altera o placar geral.
+
+Quando um resultado pode entrar no top 3, aparece um único campo de apelido opcional, de 2 a 18 caracteres. O apelido fica público. Depois do primeiro registro, os próximos resultados são atualizados sem pedir o nome novamente. O jogador pode seguir para outra fase sem participar. Se o serviço estiver indisponível, o jogo e o progresso local continuam funcionando.
+
+Os testes usam dados temporários em SQLite, sem inserir nomes de teste no placar publicado. São 63 testes de jogo/interface e 2 testes da API. Esta é uma classificação casual: verifica partidas, mas não implementa proteção contra bots ou identidades múltiplas. A verificação física em Android e a inspeção visual real continuam pendentes neste ambiente.

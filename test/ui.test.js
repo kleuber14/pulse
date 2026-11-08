@@ -17,6 +17,18 @@ for (const name of ["window", "document", "localStorage", "navigator"])
     configurable: true,
   });
 globalThis.matchMedia = w.matchMedia.bind(w);
+w.sessionStorage.setItem("pulse-creator-intro", "1");
+globalThis.fetch = async (url, options = {}) => {
+  const body = options.body ? JSON.parse(options.body) : {};
+  const result = String(url).endsWith("/api/leaderboard")
+    ? { top: [] }
+    : String(url).endsWith("/api/preview")
+      ? { eligible: body.level === 1, improved: true, score: 1000 }
+      : { rank: 1, top: [{ rank: 1, alias: body.alias, score: 1000 }] };
+  return new Response(JSON.stringify(result), {
+    headers: { "Content-Type": "application/json" },
+  });
+};
 w.document.body.innerHTML = '<div id="app"></div>';
 w.localStorage.setItem(
   "pulse-circuits-v2",
@@ -34,7 +46,7 @@ const $ = (s) => w.document.querySelector(s),
     [...w.document.querySelectorAll("[data-node]")].map((b) =>
       Number(b.dataset.ports),
     );
-test("entrada oferece áudio, tutorial guia os três circuitos e 30 fases podem ser concluídas", async () => {
+test("entrada oferece áudio, tutorial guia os três circuitos e 50 fases podem ser concluídas", async () => {
   assert.match($('[data-action="play-sound"]').textContent, /com som/);
   assert.equal(
     $('[data-action="sound"]').getAttribute("aria-pressed"),
@@ -76,13 +88,27 @@ test("entrada oferece áudio, tutorial guia os três circuitos e 30 fases podem 
     assert.ok(network(l, state()).solved);
     assert.equal($("#dialog").open, true);
     assert.match($("#dialog").textContent, /ouro/);
-    if (l.number < 30) click("next");
+    if (l.number === 1) {
+      assert.ok($(".record-form"));
+      const input = $("#record-name");
+      input.value = "Ana";
+      $(".record-form").dispatchEvent(
+        new w.Event("submit", { bubbles: true, cancelable: true }),
+      );
+      await wait();
+      assert.equal(
+        JSON.parse(w.localStorage.getItem("pulse-circuits-v2")).alias,
+        "Ana",
+      );
+    }
+
+    if (l.number < levels.length) click("next");
     else click("home");
   }
   assert.equal(
     Object.keys(JSON.parse(w.localStorage.getItem("pulse-circuits-v2")).wins)
       .length,
-    30,
+    50,
   );
   click("daily");
   assert.match(w.document.body.textContent, /CIRCUITO DIÁRIO/);

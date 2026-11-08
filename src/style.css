@@ -1551,3 +1551,562 @@ textarea {
     margin-bottom: 24px;
   }
 }
+/* Mobile clarity: fewer labels, readable text and controls close to the board. */
+html {
+  font-size: 16px;
+}
+button {
+  touch-action: manipulation;
+}
+.minimal-home {
+  grid-template-columns: 1fr 1fr;
+  row-gap: 30px;
+}
+.minimal-home .hero-copy {
+  padding-top: 12px;
+}
+.minimal-home h1 {
+  font-size: clamp(42px, 5vw, 66px);
+  margin-top: 0;
+}
+.minimal-home .hero-copy > p {
+  font-size: 18px;
+}
+.minimal-home .hero-actions {
+  margin-top: 26px;
+}
+.minimal-home .primary,
+.minimal-home .secondary {
+  font-size: 16px;
+  gap: 18px;
+  min-height: 52px;
+}
+.silent-start {
+  font-size: 16px;
+  min-height: 44px;
+}
+.home-links {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+.home-links .secondary {
+  padding: 10px 18px;
+}
+.online-ranking {
+  grid-column: 1/-1;
+  max-width: 620px;
+  width: 100%;
+  border-top: 1px solid var(--line);
+  padding-top: 22px;
+}
+.ranking-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ranking-heading h2 {
+  font-size: 23px;
+  font-weight: 500;
+  margin: 0;
+}
+.ranking-heading button {
+  font-size: 25px;
+  min-width: 44px;
+  min-height: 44px;
+}
+#leaderboard p,
+.ranking-note {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.podium {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 14px;
+}
+.podium li {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 18px;
+}
+.podium li > b {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: var(--lime);
+  font-size: 17px;
+}
+.podium li > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.podium strong {
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--cyan);
+}
+.podium small {
+  font-size: 14px;
+}
+.chapter-title span,
+.chapter-title small {
+  font-size: 14px;
+  letter-spacing: 0.4px;
+}
+.chapter p {
+  font-size: 16px;
+}
+.level-tile small {
+  font-size: 13px;
+}
+.game-controls .secondary span {
+  font-size: 16px;
+}
+.game-controls .secondary {
+  min-height: 48px;
+  padding: 12px 16px;
+}
+.game-heading p {
+  font-size: 16px;
+}
+.tutorial-card strong {
+  font-size: 16px;
+}
+.tutorial-card p {
+  font-size: 14px;
+}
+.board-status {
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+.hint-area {
+  font-size: 16px;
+}
+.settings label {
+  font-size: 18px;
+}
+.settings label small,
+.settings p {
+  font-size: 14px;
+}
+.settings .primary,
+.victory .primary,
+.victory .secondary {
+  font-size: 16px;
+  min-height: 50px;
+}
+.volume-setting input {
+  width: 140px;
+}
+.victory p {
+  font-size: 17px;
+}
+.victory > small {
+  font-size: 14px;
+}
+.record-form {
+  margin: 22px 0 6px;
+  text-align: left;
+}
+.record-form label {
+  font-size: 17px;
+  display: block;
+  margin-bottom: 10px;
+}
+.record-form > div {
+  display: flex;
+  gap: 8px;
+}
+.record-form input {
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+  font: 18px inherit;
+  font-size: 18px;
+  color: #edf3f8;
+  background: #07111c;
+  border: 1px solid #466a77;
+  border-radius: 7px;
+}
+.record-form .primary {
+  padding: 12px 18px;
+}
+.record-form small {
+  display: block;
+  font-size: 14px;
+  color: #acbac9;
+  margin-top: 10px;
+  line-height: 1.4;
+}
+.record-message {
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+}
+.rank-success {
+  color: var(--lime);
+  font-size: 17px;
+}
+.record-victory .medal {
+  color: #ffc355;
+  box-shadow: 0 0 40px #ffc35533;
+}
+.record-victory .eyebrow {
+  color: #ffd783;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 1px;
+}
+.creator-intro {
+  position: fixed;
+  inset: 0;
+  background: #050607;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 24px;
+  z-index: 1000;
+  animation: creator-arrive 2.3s ease both;
+}
+.creator-intro img {
+  width: min(76vw, 430px);
+  height: auto;
+  object-fit: contain;
+}
+.creator-intro > span {
+  font-size: 14px;
+  color: #b9a578;
+  letter-spacing: 5px;
+}
+.creator-intro button {
+  position: absolute;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  right: 24px;
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 16px;
+  color: #d5cbaf;
+}
+.confetti {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2000;
+}
+.confetti i {
+  position: absolute;
+  left: var(--x);
+  top: -20px;
+  width: 8px;
+  height: 15px;
+  background: var(--color);
+  animation: confetti-fall 2s ease-in var(--delay) both;
+}
+@keyframes creator-arrive {
+  0% {
+    opacity: 0;
+  }
+  18%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes confetti-fall {
+  to {
+    transform: translate(20px, 105vh) rotate(var(--spin));
+    opacity: 0.15;
+  }
+}
+@media (max-width: 650px) {
+  header {
+    height: 66px;
+    padding: 0 20px;
+  }
+  .brand {
+    font-size: 23px;
+  }
+  nav {
+    gap: 12px;
+  }
+  nav button[data-action="continue"],
+  nav button[data-action="levels"],
+  nav button[data-action="daily"] {
+    display: none;
+  }
+  nav .sound-toggle {
+    padding: 9px 12px;
+    min-height: 44px;
+  }
+  nav .sound-toggle span {
+    font-size: 14px;
+  }
+  nav .icon {
+    width: 44px;
+    height: 44px;
+    font-size: 22px !important;
+  }
+  footer {
+    display: none;
+  }
+  .home.minimal-home {
+    padding: 28px 24px 32px;
+    display: block;
+  }
+  .minimal-home .hero-copy {
+    padding: 0;
+  }
+  .minimal-home h1 {
+    font-size: 43px;
+    letter-spacing: -1.5px;
+    line-height: 1.08;
+    margin: 4px 0 18px;
+  }
+  .minimal-home .hero-copy > p {
+    font-size: 17px;
+    line-height: 1.5;
+    margin: 0 0 20px;
+  }
+  .minimal-home .hero-actions {
+    margin-top: 22px;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .minimal-home .hero-actions .primary,
+  .minimal-home .hero-actions .secondary {
+    width: 100%;
+    font-size: 18px;
+    min-height: 54px;
+  }
+  .silent-start {
+    font-size: 16px;
+    margin: 5px 0 0;
+  }
+  .home-links {
+    margin-top: 14px;
+    gap: 12px;
+  }
+  .home-links .secondary {
+    font-size: 16px;
+    flex: 1;
+    padding: 12px;
+  }
+  .minimal-home .hero-art {
+    display: none;
+  }
+  .online-ranking {
+    margin-top: 28px;
+    padding-top: 18px;
+  }
+  .ranking-heading h2 {
+    font-size: 22px;
+  }
+  .ranking-note {
+    font-size: 14px;
+    margin-bottom: 0;
+  }
+  .game-page {
+    padding: 10px 20px 24px;
+  }
+  .game-top {
+    font-size: 13px;
+    letter-spacing: 0;
+    min-height: 38px;
+    gap: 12px;
+  }
+  .game-top > span:nth-child(2) {
+    display: none;
+  }
+  .game-top .text-button {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .stage-id {
+    font-size: 23px;
+  }
+  .stage-id small {
+    font-size: 15px;
+  }
+  .game-heading {
+    margin: 8px 0 14px;
+  }
+  .game-heading .eyebrow,
+  .game-heading #instruction {
+    display: none;
+  }
+  .game-heading h1 {
+    font-size: 25px;
+    letter-spacing: -0.6px;
+    line-height: 1.2;
+    margin: 0 auto;
+  }
+  .stats {
+    gap: 10px;
+    margin: 0 0 14px;
+    padding: 0;
+  }
+  .stats .tiny-label {
+    font-size: 14px;
+    letter-spacing: 0.8px;
+  }
+  .stats strong {
+    font-size: 27px;
+    margin: 0;
+  }
+  .stats .efficiency {
+    display: none;
+  }
+  .game-layout {
+    gap: 0;
+  }
+  .board-wrap {
+    width: min(100%, 380px);
+  }
+  .board-instruction {
+    display: none;
+  }
+  .board-wrap .board-status {
+    font-size: 14px;
+    letter-spacing: 0;
+    margin: 14px 0 0;
+    gap: 8px;
+    line-height: 1.4;
+  }
+  .board-status > span:last-child {
+    font-size: 13px;
+  }
+  .tutorial-card {
+    padding: 12px 14px;
+    margin: 12px 0 0;
+    align-items: center;
+  }
+  .tutorial-card strong {
+    font-size: 16px;
+    line-height: 1.4;
+  }
+  .tutorial-card p {
+    display: none;
+  }
+  .tutorial-step {
+    font-size: 25px;
+  }
+  .game-controls {
+    margin-top: 18px;
+    gap: 8px;
+  }
+  .game-controls .secondary {
+    padding: 12px 10px;
+    gap: 6px;
+    flex: 1;
+    min-height: 48px;
+  }
+  .game-controls .secondary span {
+    font-size: 14px;
+  }
+  .game-controls .secondary {
+    font-size: 21px;
+  }
+  .hint-area {
+    font-size: 16px;
+    margin-top: 14px;
+    min-height: 0;
+  }
+  .level-page {
+    padding: 28px 20px;
+  }
+  .level-page > .eyebrow {
+    display: none;
+  }
+  .level-page h1 {
+    font-size: 30px;
+    line-height: 1.2;
+    margin: 8px 0 24px;
+  }
+  .chapters {
+    margin-top: 20px;
+  }
+  .chapter {
+    padding: 18px;
+  }
+  .chapter-title {
+    align-items: center;
+    gap: 10px;
+  }
+  .chapter-title span {
+    font-size: 14px;
+    letter-spacing: 0.5px;
+  }
+  .chapter-title small {
+    font-size: 13px;
+  }
+  .chapter p {
+    font-size: 15px;
+    margin: 14px 0 18px;
+  }
+  .level-grid {
+    gap: 7px;
+  }
+  .level-tile span {
+    font-size: 20px;
+  }
+  .level-tile small {
+    font-size: 12px;
+  }
+  dialog {
+    padding: 24px;
+    max-height: calc(100dvh - 32px);
+    overflow: auto;
+  }
+  dialog h2 {
+    font-size: 30px;
+  }
+  .victory-actions {
+    margin-top: 20px;
+  }
+  .victory .text-button {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .record-form label {
+    font-size: 16px;
+  }
+  .settings .eyebrow {
+    font-size: 13px;
+  }
+}
+@media (max-width: 350px) {
+  header {
+    padding: 0 14px;
+  }
+  .brand {
+    font-size: 21px;
+    letter-spacing: 3px;
+  }
+  nav {
+    gap: 8px;
+  }
+  .game-page {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  .game-controls .secondary {
+    padding: 12px 7px;
+  }
+  .game-controls .secondary span {
+    font-size: 14px;
+  }
+  .board-status > span:last-child {
+    font-size: 12px;
+  }
+}

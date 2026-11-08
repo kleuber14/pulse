@@ -171,7 +171,16 @@ export function createLevel(number, seed = number, isDaily = false) {
       stack.push(j);
     }
     // Later chapters add loops; every tile remains reachable from the source.
-    let extra = number <= 10 ? 0 : number <= 20 ? 1 : 2;
+    let extra =
+      number <= 10
+        ? 0
+        : number <= 20
+          ? 1
+          : number <= 30
+            ? 2
+            : number <= 40
+              ? 3
+              : 4;
     for (let attempt = 0; extra && attempt < 80; attempt++) {
       const i = Math.floor(random() * n * n),
         d = directions[Math.floor(random() * 4)],
@@ -214,7 +223,7 @@ export function createLevel(number, seed = number, isDaily = false) {
   if (!level.solution?.length) throw Error(`Invalid level ${number}`);
   return level;
 }
-export const levels = Array.from({ length: 30 }, (_, i) => createLevel(i + 1));
+export const levels = Array.from({ length: 50 }, (_, i) => createLevel(i + 1));
 export function localDate(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
 }

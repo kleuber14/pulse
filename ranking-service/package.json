@@ -1,0 +1,1 @@
+{"name":"pulse-ranking-api","private":true,"type":"module","scripts":{"db:generate":"drizzle-kit generate","build":"node build.mjs","test":"node --test"},"devDependencies":{"drizzle-kit":"^0.31.0","drizzle-orm":"^0.44.0"}}
