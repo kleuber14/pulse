@@ -11,7 +11,10 @@ export function analyticsConsent() {
 }
 export function setAnalyticsConsent(accepted) {
   try { localStorage.setItem(STORAGE_KEY, accepted ? "yes" : "no"); } catch {}
-  if (accepted) initialize();
+  if (accepted) {
+    if (initialized && typeof window.gtag === "function") window.gtag("consent", "update", { analytics_storage: "granted" });
+    else initialize();
+  }
   else if (initialized && typeof window.gtag === "function") {
     window.gtag("consent", "update", { analytics_storage: "denied" });
   }
