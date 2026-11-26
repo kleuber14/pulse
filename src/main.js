@@ -26,7 +26,8 @@ let screen = "home",
   busy = false,
   epoch = 0,
   hints = 0,
-  selected = 1;
+  selected = 1,
+  dailyResult = null;
 setVolume(data.volume ?? 0.9);
 const chapters = ["CONEXÃO", "CIRCUITOS", "FLUXO", "RESSONÂNCIA", "HARMONIA"];
 const button = (text, action, cls = "", extra = "") =>
@@ -146,6 +147,22 @@ function levelSelect() {
       )
       .join("")}</div></main>`,
   );
+}
+function openDaily() {
+  const puzzle = daily();
+  if (data.daily[puzzle.date]) return showDailyResult(puzzle, data.daily[puzzle.date]);
+  start(puzzle);
+}
+function showDailyResult(puzzle, result) {
+  epoch++;
+  busy = false;
+  screen = "daily-result";
+  level = puzzle;
+  dailyResult = {...result};
+  const best = data.daily[puzzle.date]?.moves ?? result.moves;
+  shell(`<main class="daily-results"><div class="daily-done" aria-hidden="true">✓</div><p class="daily-result-date">Desafio do dia · ${puzzle.date.split("-").reverse().join("/")}</p><h1>Desafio concluído!</h1><p class="daily-result-confirmation">Você conectou toda a rede.</p><div class="daily-score"><strong>${result.moves}<span>giros</span></strong><div><b>Medalha de ${result.medal}</b><span>Referência: ${puzzle.solution.length} giros</span><span>Seu melhor hoje: ${best} giros</span></div></div><p class="daily-saved" role="status">✓ Resultado salvo neste aparelho.</p><p class="daily-tomorrow">Novo desafio amanhã.</p><div class="daily-result-actions">${button("Concluir", "home", "primary")}${button("Compartilhar resultado", "share", "secondary")}${button("Jogar novamente", "daily-replay", "text-button")}</div></main>`);
+  document.querySelector('.daily-results h1').setAttribute('tabindex','-1');
+  document.querySelector('.daily-results h1').focus();
 }
 function start(l) {
   trackAbandonedTutorial();
@@ -274,6 +291,7 @@ async function win() {
   await new Promise((r) => setTimeout(r, duration(600)));
   if (token !== epoch) return;
   busy = false;
+  if (level.daily) return showDailyResult(level, result);
   showDialog(
     `<div class="victory"><div class="medal ${result.medal}">✦</div><div class="eyebrow">A ENERGIA ENCONTROU SEU CAMINHO</div><h2>Tudo flui.</h2><p>Medalha de ${result.medal} · ${history.length} giros</p><small>${level.number <= 3 && !level.daily ? ["Um toque conecta caminhos.", "A luz segue os fios conectados.", "Você já sabe: gire, una e complete a rede."][level.number - 1] : `Referência: ${level.solution.length} giros`}</small><div class="victory-actions">${button(level.daily ? "Voltar ao início" : level.number === levels.length ? "Jornada concluída ↗" : "Próximo circuito ↗", level.daily || level.number === levels.length ? "home" : "next", "primary")}${button("Compartilhar resultado", "share", "secondary")}${button("Revisitar circuito", "close", "text-button")}</div></div>`,
   );
@@ -364,7 +382,8 @@ function settings() {
   );
 }
 async function share() {
-  const text = `PULSE ${level.daily ? "· Circuito diário " + level.date : "· Circuito " + level.number + "/50"}\n${history.length} giros · ${medal(history.length, level.solution.length)} ✦\nGire. Conecte. Deixe fluir.`;
+  const resultMoves = screen === "daily-result" ? dailyResult.moves : history.length;
+  const text = `PULSE ${level.daily ? "· Circuito diário " + level.date : "· Circuito " + level.number + "/50"}\n${resultMoves} giros · ${medal(resultMoves, level.solution.length)} ✦\nGire. Conecte. Deixe fluir.`;
   try {
     if (navigator.share) { await navigator.share({ title: "PULSE", text }); track("share_result", { mode: level.daily ? "daily" : "campaign" }); }
     else {
@@ -405,7 +424,8 @@ app.addEventListener("click", (e) => {
     return start(levels[0]);
   }
   if (a === "continue") return start(levels[unlocked() - 1]);
-  if (a === "daily") return start(daily());
+  if (a === "daily") return openDaily();
+  if (a === "daily-replay") return start(daily());
   if (a.startsWith("level:")) return start(levels[Number(a.split(":")[1]) - 1]);
   if (busy) return;
   if (a === "next") return start(levels[level.number]);

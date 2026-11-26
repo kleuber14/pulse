@@ -112,6 +112,7 @@ test("entrada oferece áudio, tutorial guia os três circuitos e 50 fases podem 
   );
   click("daily");
   assert.match(w.document.body.textContent, /CIRCUITO DIÁRIO/);
+  const campaignBeforeDaily = JSON.parse(w.localStorage.getItem("pulse-circuits-v2")).wins;
   const day = daily();
   for (const i of solve(day, state())) {
     $(`[data-node="${i}"]`).click();
@@ -120,6 +121,13 @@ test("entrada oferece áudio, tutorial guia os três circuitos e 50 fases podem 
   assert.ok(
     JSON.parse(w.localStorage.getItem("pulse-circuits-v2")).daily[day.date],
   );
+  assert.ok($(".daily-results"));
+  assert.match($(".daily-results h1").textContent,/Desafio concluído/);
+  assert.match($(".daily-saved").textContent,/salvo/);
+  assert.match($(".daily-tomorrow").textContent,/amanhã/);
+  assert.equal($(".daily-results [data-action=next]"),null);
+  assert.equal($(".daily-results [data-action=continue]"),null);
+  assert.deepEqual(JSON.parse(w.localStorage.getItem("pulse-circuits-v2")).wins,campaignBeforeDaily);
   let shared;
   w.navigator.share = async (v) => {
     shared = v;
@@ -129,7 +137,11 @@ test("entrada oferece áudio, tutorial guia os três circuitos e 50 fases podem 
   assert.match(shared.text, /giros/);
   click("home");
   click("daily");
-  assert.match($("#instruction").textContent, /Seu melhor hoje/);
+  assert.ok($(".daily-results"));
+  assert.match($(".daily-score").textContent,/Seu melhor hoje/);
+  click("daily-replay");
+  assert.deepEqual(state(),day.state);
+  assert.equal($("#moves").textContent,"00");
   click("sound");
   assert.equal(
     JSON.parse(w.localStorage.getItem("pulse-circuits-v2")).sound,
@@ -159,6 +171,7 @@ test("toques repetidos e navegação durante rotação não corrompem outro circ
   click("restart");
   $('[data-node="2"]').click();
   click("daily");
+  click("daily-replay");
   const before = state();
   await new Promise((r) => setTimeout(r, 260));
   assert.deepEqual(state(), before);
