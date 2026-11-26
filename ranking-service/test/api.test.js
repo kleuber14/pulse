@@ -11,3 +11,8 @@ test('ranking persiste top 3 entre aparelhos, sem multiplicar pontuação por re
  const preview=await (await call('/api/preview',{level:2,turns:levels[1].solution},'0'.repeat(40))).json();assert.equal(preview.eligible,true);await call('/api/scores',{level:2,turns:levels[1].solution,alias:'Jogador 0'},'0'.repeat(40));const updated=await (await call('/api/leaderboard')).json();assert.equal(updated.top[0].score,2000);
  const bad=await worker.fetch(new Request('https://ranking.test/api/leaderboard',{headers:{Origin:'https://unrelated.test'}}),env);assert.equal(bad.status,403);
 });
+
+test('o aplicativo Android tem uma origem CORS explícita, sem liberar sites externos',async()=>{
+ const env={DB:binding()};const response=await worker.fetch(new Request('https://ranking.test/api/leaderboard',{headers:{Origin:'https://localhost'}}),env);assert.equal(response.status,200);assert.equal(response.headers.get('Access-Control-Allow-Origin'),'https://localhost');
+ const preflight=await worker.fetch(new Request('https://ranking.test/api/scores',{method:'OPTIONS',headers:{Origin:'https://localhost'}}),env);assert.equal(preflight.status,204);
+});

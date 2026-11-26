@@ -1,4 +1,5 @@
 import "./style.css";
+import { setupNative, shareNative } from "./native.js";
 import {
   levels,
   daily,
@@ -385,6 +386,7 @@ async function share() {
   const resultMoves = screen === "daily-result" ? dailyResult.moves : history.length;
   const text = `PULSE ${level.daily ? "· Circuito diário " + level.date : "· Circuito " + level.number + "/50"}\n${resultMoves} giros · ${medal(resultMoves, level.solution.length)} ✦\nGire. Conecte. Deixe fluir.`;
   try {
+    if (await shareNative(text)) {track("share_result", {mode:level.daily?"daily":"campaign"});return;}
     if (navigator.share) { await navigator.share({ title: "PULSE", text }); track("share_result", { mode: level.daily ? "daily" : "campaign" }); }
     else {
       await navigator.clipboard.writeText(text);
@@ -501,3 +503,15 @@ function trackAbandonedTutorial() {
 }
 home();
 creatorIntro(data.motion);
+
+setupNative({
+  onBack() {
+    const intro = document.querySelector('.creator-intro button');
+    if (intro) {intro.click();return true;}
+    const dialog = document.querySelector('#dialog');
+    if (dialog?.open) {dialog.close();return true;}
+    if (screen === 'home') return false;
+    home();return true;
+  },
+  onPause: silence,
+});

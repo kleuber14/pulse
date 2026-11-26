@@ -46,6 +46,12 @@ const $ = (s) => w.document.querySelector(s),
     [...w.document.querySelectorAll("[data-node]")].map((b) =>
       Number(b.dataset.ports),
     );
+const waitFor = async predicate => {
+  const deadline=Date.now()+3000;
+  while(!predicate() && Date.now()<deadline) await new Promise(r=>setTimeout(r,5));
+  assert.ok(predicate(), "UI must finish its transition");
+};
+
 test("entrada oferece áudio, tutorial guia os três circuitos e 50 fases podem ser concluídas", async () => {
   assert.match($('[data-action="play-sound"]').textContent, /com som/);
   assert.equal(
@@ -86,6 +92,7 @@ test("entrada oferece áudio, tutorial guia os três circuitos e 50 fases podem 
       await wait();
     }
     assert.ok(network(l, state()).solved);
+    await waitFor(()=>$("#dialog").open);
     assert.equal($("#dialog").open, true);
     assert.match($("#dialog").textContent, /ouro/);
     if (l.number === 1) {
@@ -121,6 +128,7 @@ test("entrada oferece áudio, tutorial guia os três circuitos e 50 fases podem 
   assert.ok(
     JSON.parse(w.localStorage.getItem("pulse-circuits-v2")).daily[day.date],
   );
+  await waitFor(()=>$(".daily-results"));
   assert.ok($(".daily-results"));
   assert.match($(".daily-results h1").textContent,/Desafio concluído/);
   assert.match($(".daily-saved").textContent,/salvo/);

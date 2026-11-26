@@ -96,3 +96,9 @@ A cada vitória, o servidor recebe a sequência de giros e verifica a solução.
 Quando um resultado pode entrar no top 3, aparece um único campo de apelido opcional, de 2 a 18 caracteres. O apelido fica público. Depois do primeiro registro, os próximos resultados são atualizados sem pedir o nome novamente. O jogador pode seguir para outra fase sem participar. Se o serviço estiver indisponível, o jogo e o progresso local continuam funcionando.
 
 Os testes usam dados temporários em SQLite, sem inserir nomes de teste no placar publicado. São 63 testes de jogo/interface e 2 testes da API. Esta é uma classificação casual: verifica partidas, mas não implementa proteção contra bots ou identidades múltiplas. A verificação física em Android e a inspeção visual real continuam pendentes neste ambiente.
+
+## Aplicativo Android com Capacitor
+
+A versão Android está preparada em `android/`, com identificador `com.kleuberavila.pulse`, Android mínimo 7 e alvo Android 16. O jogo é incluído no aplicativo; o ranking continua online. Veja **ANDROID.md** para compilar, baixar o APK de teste e entender a assinatura necessária para publicar o AAB.
+
+O workflow **Build PULSE Android** em GitHub Actions produz o artefato **PULSE-Android** com APK instalável, AAB de lançamento sem assinatura e ícone da loja. Esse workflow é manual e não publica automaticamente na Play Store. Chaves e senhas de publicação não fazem parte do repositório.

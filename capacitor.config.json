@@ -1,0 +1,19 @@
+{
+  "appId": "com.kleuberavila.pulse",
+  "appName": "PULSE",
+  "webDir": "dist",
+  "backgroundColor": "#070c17",
+  "android": {
+    "allowMixedContent": false,
+    "webContentsDebuggingEnabled": false
+  },
+  "server": {
+    "hostname": "localhost",
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK"
+    }
+  }
+}
